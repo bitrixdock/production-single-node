@@ -1,0 +1,120 @@
+version: '2'
+
+volumes:
+  site-mysql-v1:
+
+services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+    - '80:80'
+    links:
+    - php56-fpm:php
+    networks:
+    - site
+    volumes:
+    - ./logs/nginx:/var/log/nginx
+    - /var/www/site.ru:/var/www/site.ru
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  php56-fpm:
+    build: ./php56-fpm
+    container_name: php56-fpm
+    ports:
+    - '9000:9000'
+    links:
+    - mysql
+    - memcached
+    networks:
+    - site
+    volumes:
+    - /var/www/site.ru:/var/www/site.ru
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  php56-cli:
+    build: ./php56-cli
+    container_name: php56-cli
+    links:
+    - mysql
+    - memcached
+    networks:
+    - site
+    volumes:
+    - /var/www/site.ru:/var/www/site.ru
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  mysql:
+    build: ./mysql
+    container_name: mysql
+    ports:
+    - '3306:3306'
+    environment:
+      MYSQL_DATABASE: site
+      MYSQL_USER: site
+      MYSQL_PASSWORD: xV1S1YQFLwL1
+      MYSQL_ROOT_PASSWORD: ZVjS2YQaL6L1
+    networks:
+    - site
+    volumes:
+    - site-mysql-v1:/var/lib/mysql
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  memcached:
+    image: memcached:1.5-alpine
+    container_name: memcached
+    ports:
+    - '11211:11211'
+    entrypoint:
+    - memcached
+    - --memory-limit=1024m
+    - --max-item-size=32m
+    restart: unless-stopped
+    mem_limit: 1073741824
+    cpu_shares: 512
+    networks:
+    - site
+  mysql-backup:
+    image: vmpartner/mysql-buckup
+    container_name: mysql-buckup
+    environment:
+      CRON_JOB: 30 3 * * *
+      FTP_PASSWORD: JxaWvVA9q
+      FTP_URL: ftp://ftp.selcdn.ru/site.ru/db/
+      FTP_USER: 69444_site
+      MYSQL_HOST: mysql
+      MYSQL_USER: site
+      MYSQL_PASSWORD: ZVjS2YQaL6L1
+      MYSQL_DATABASE: site
+    restart: unless-stopped
+    mem_limit: 536870912
+    cpu_shares: 512
+    links:
+    - mysql:mysql
+  rclone:
+    build: ./rclone
+    container_name: rclone
+    environment:
+      SYNC_SRC: "/source"
+      SYNC_DEST: "selectel:site.ru/upload/"
+      TZ: "Europe/Moscow"
+      CRON: "0 0 * * *"
+      CRON_ABORT: "0 13 * * *"
+      FORCE_SYNC: "0"
+      # CHECK_URL: "https://healthchecks.io/"
+    volumes:
+    - /var/www/site.ru/upload:/source:ro
+    restart: unless-stopped
+    mem_limit: 536870912
+    cpu_shares: 512
+networks:
+  site:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.0.0.0/8

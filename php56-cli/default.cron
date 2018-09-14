@@ -1,0 +1,4 @@
+
+# Bitrix events
+* * * * *       root    /usr/bin/flock -n /root/cron.lockfile   /usr/bin/php /var/www/site.ru/bitrix/php_interface/cron_events.php 1>> /dev/null 2>&1
+
