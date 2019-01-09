@@ -73,8 +73,8 @@ services:
     networks:
     - site
   mysql-backup:
-    image: vmpartner/mysql-buckup
-    container_name: mysql-buckup
+    image: vmpartner/mysql-backup
+    container_name: mysql-backup
     environment:
       CRON_JOB: 30 3 * * *
       FTP_PASSWORD: JxaWvVA9q
