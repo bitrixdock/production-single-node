@@ -29,6 +29,3 @@ docker-compose -f docker-compose.develop.yml up -d
 
 Пишите вопросы/предложения в issue
 
-## Рекомендуем 🍭
-Крутой хостинг и хранилище https://selectel.ru/?ref_code=8m7MgmV9Axc4
-
